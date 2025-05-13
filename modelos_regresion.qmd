@@ -1,0 +1,163 @@
+---
+title: "Modelos de Regresión en R"
+format: html
+editor: visual
+---
+
+# Introducción
+
+Este documento presenta diferentes modelos de regresión aplicados a los conjuntos de datos `Boston` y `Hitters`, usando regresión lineal, regresión múltiple, modelos con interacción, modelos polinomiales, y regularización (Ridge y Lasso). Se incluyen interpretaciones de los resultados y visualizaciones, incluyendo una gráfica 3D.
+
+```{r}
+# Cargamos paquetes necesarios
+library(MASS)
+library(car)
+library(rgl)
+library(ISLR)
+library(glmnet)
+library(quarto)
+```
+
+# Regresión Lineal Simple
+
+Utilizamos el conjunto de datos `Boston` para predecir el valor medio de las viviendas (`medv`) a partir del porcentaje de población con bajos ingresos (`lstat`).
+
+```{r}
+# Observamos las variables de la tabla de datos Boston, y la ayuda
+names(Boston) #para visualizar los nombres
+?Boston    #para visualizar los datos de Boston
+
+# Regresion lineal simple
+
+modelo<-lm(medv~lstat, data=Boston)  #medv registra el precio medio del valor de una casa en dolares
+                                    #lm= lineal model 
+
+plot(Boston$lstat,Boston$medv);    #Plot para pintar el diagrama de dispersion de estas dos variables
+abline(modelo,lwd=3,col="blue")#Pinta una recta b=pendiente a= punto
+
+summary(modelo)   #estimate std son los beta gorro, error estandar es la desviacion, el valor t, estadistico, desviacion tipica residual
+
+names(modelo)
+
+confint(modelo,level=0.95)
+
+nuevos<-data.frame(lstat=c(5,10,15))
+predict(modelo,nuevos,interval="prediction") #predecir
+
+plot(modelo)
+```
+
+**Interpretación:**\
+El coeficiente negativo de `lstat` indica que a mayor porcentaje de población con bajos ingresos, menor es el valor medio de las viviendas. El modelo tiene una relación lineal negativa clara y significativa.
+
+# Regresión Lineal Múltiple
+
+Añadimos más predictores como `age` y todas las variables disponibles en el conjunto.
+
+```{r}
+modelo2 <- lm(medv ~ lstat + age, data = Boston)
+modelo3 <- lm(medv ~ ., data = Boston)
+summary(modelo2)
+summary(modelo3)
+vif(modelo3)
+```
+
+**Interpretación:**\
+El modelo múltiple mejora la explicación del valor de `medv`. Algunos predictores como `rm` (número de habitaciones) y `lstat` siguen siendo muy significativos. El VIF permite identificar colinealidad.
+
+# Modelo con Interacción
+
+```{r}
+modelo5 <- lm(medv ~ lstat * rm, data = Boston)
+summary(modelo5)
+```
+
+**Interpretación:**\
+El término de interacción `lstat:rm` muestra que el efecto de `lstat` sobre `medv` cambia dependiendo del valor de `rm`. Esto añade complejidad y mejora la interpretación del modelo.
+
+# Visualización 3D de Interacción
+
+```{r}
+# Preparar datos para graficar en 3D
+x <- Boston$lstat
+y <- Boston$rm
+z <- Boston$medv
+modelo_inter <- lm(medv ~ lstat * rm, data = Boston)
+grid <- expand.grid(
+  lstat = seq(min(x), max(x), length.out = 30),
+  rm = seq(min(y), max(y), length.out = 30)
+)
+grid$medv <- predict(modelo_inter, newdata = grid)
+
+# Gráfica 3D
+plot3d(x, y, z, col = "red", size = 5, xlab = "lstat", ylab = "rm", zlab = "medv")
+surface3d(unique(grid$lstat), unique(grid$rm), matrix(grid$medv, 30, 30), alpha = 0.5, front = "lines")
+
+
+
+```
+
+**Interpretación:**\
+La gráfica 3D muestra cómo se combinan `lstat` y `rm` para explicar `medv`. Permite visualizar mejor la interacción entre variables.
+
+# Regularización: Ridge y Lasso
+
+Usamos el conjunto `Hitters` para aplicar técnicas de regularización.
+
+```{r}
+bateadores<-na.omit(Hitters)
+
+x<-model.matrix(Salary~.,data=bateadores)[,-1]
+y<-bateadores$Salary
+
+
+set.seed(123)  # reproducibilidad
+train <- sample(1:nrow(x), nrow(x) * 0.7)
+test <- (-train)
+
+x_train <- x[train, ]
+y_train <- y[train]
+x_test <- x[test, ]
+y_test <- y[test]
+
+# Ridge
+cv_ridge <- cv.glmnet(x_train, y_train, alpha = 0)
+best_lambda_ridge <- cv_ridge$lambda.min
+
+# Lasso
+cv_lasso <- cv.glmnet(x_train, y_train, alpha = 1)
+best_lambda_lasso <- cv_lasso$lambda.min
+
+# Predicciones
+ridge_pred <- predict(cv_ridge, s = best_lambda_ridge, newx = x_test)
+lasso_pred <- predict(cv_lasso, s = best_lambda_lasso, newx = x_test)
+
+# Error cuadrático medio (RMSE)
+rmse <- function(actual, predicted) {
+  sqrt(mean((actual - predicted)^2))
+}
+
+ridge_rmse <- rmse(y_test, ridge_pred)
+lasso_rmse <- rmse(y_test, lasso_pred)
+
+cat("RMSE Ridge:", ridge_rmse, "\n")
+cat("RMSE Lasso:", lasso_rmse, "\n")
+
+coef(cv_ridge, s = best_lambda_ridge)
+coef(cv_lasso, s = best_lambda_lasso)
+
+plot(cv_ridge)
+plot(cv_lasso)
+
+```
+
+**Interpretación:**\
+- **Ridge** reduce el tamaño de los coeficientes, útil si hay multicolinealidad. - **Lasso** además puede eliminar variables irrelevantes, haciendo selección automática.
+
+-   **Lasso ha eliminado** algunas variables que no ayudan mucho a predecir el salario (`Runs`, `CHits`).
+-   Algunas variables con signos negativos inesperados podrían deberse a **multicolinealidad** o interacciones con otras variables similares (ej. `HmRun` negativo pero `CHmRun` positivo).
+-   Variables como `DivisionW`, `NewLeagueN`, y `LeagueN` muestran cómo factores de contexto también afectan el salario.
+
+------------------------------------------------------------------------
+
+Este documento demuestra habilidades en regresión, análisis gráfico, interpretación y uso de técnicas modernas como la regularización. También destaca el uso de herramientas visuales como `rgl` para análisis tridimensional.

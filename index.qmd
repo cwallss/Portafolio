@@ -1,0 +1,38 @@
+---
+title: "Portafolio R"
+author: "Walls Salcedo Carlos"
+format: html
+editor: visual
+---
+
+# ¡Bienvenido a mi portafolio!
+
+Hola, mi nombre es **Walls Salcedo Carlos** y soy estudiante de último semestre de la Licenciatura en Actuaría. Este portafolio reúne algunos de los trabajos que he realizado durante mi carrera, así como proyectos personales y ejercicios desarrollados en cursos externos como:
+
+-   **Advanced Data Analytics** (Google)
+-   Proyectos de análisis estadístico
+-   Modelos predictivos y de regresión
+-   Aplicaciones en R usando Quarto y R Markdown
+
+------------------------------------------------------------------------
+
+## 🧠 ¿Qué encontrarás aquí?
+
+Este portafolio incluye:
+
+-   Modelos de regresión lineal y múltiple
+-   Modelos con interacción y polinomiales
+-   Visualizaciones en 2D y 3D
+-   Regularización (Ridge y Lasso)
+-   Análisis exploratorio de datos (EDA)
+-   Limpieza y preparación de datos
+
+------------------------------------------------------------------------
+
+## Herramientas utilizadas
+
+-   `R` y `RStudio`
+-   `Quarto`
+-   Paquetes: `tidyverse`, `ggplot2`, `dplyr`, `glmnet`, `rgl`, etc
+
+Gracias por visitar mi portafolio.

@@ -1,0 +1,21 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Mi Portafolio de Evidencias"
+  # site-url: "https://github.com/cwallss/PortafolioR.git" # Comenta o elimina esta línea
+  favicon: "ruta/a/tu/favicon.ico" # Opcional
+
+  navbar:
+    left:
+      - href: index.qmd
+        text: Inicio
+      - href: modelos_regresion.qmd
+        text: Modelos de Regresión
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    title-block-banner: true # Esta propiedad va dentro de la configuración del formato HTML
